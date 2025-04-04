@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th ="http://www.thymeleaf.org">
+
+<head>
+	
+	<meta charset="UTF-8">
+	<title>LoginPage</title>
+	
+	<link th:href="@{/style/HeaderStyle.css}" rel="stylesheet">
+	
+	<style>
+		.logininfo
+		{
+			/* ヘッダーの高さを適用するための初期設定、
+			JavaScriptで動的に高さを取得するため、この値は後で上書きされます。*/
+			
+	  		padding-top: 75px; /* ヘッダーの高さ分の余白を追加 */
+		}
+	</style>
+	
+</head>
+
+<body>
+	<div th:insert="MenuHeader :: header"></div>
+	
+	<div class="logininfo">
+		
+		<!--<ul> は「unordered list」の略で、順序なしリストを作成するためのHTMLタグ-->
+		<!--<ul> タグの中には <li>（リスト項目）タグを使って各アイテムをリストとして挿入-->
+		<ul>
+			<li>メールアドレス：[[${accountData.email}]]</li>
+			<li>　　パスワード：[[${accountData.password}]]</li>
+		</ul>
+		
+		<a href= "./ContactUs.html" th:href="@{/contactUs}">お問い合わせ</a>
+	</div>
+	
+	<script>
+		// ページ読み込み時にヘッダーの高さを取得して、bodyにpadding-topを動的に設定
+		// offsetHeight を使って要素の高さを取得しているため、ボーダーやパディングなども考慮されるらしい。
+		window.onload = function()
+		{
+			var headerHeight = document.querySelector('.HeaderMenuBackGround').offsetHeight;
+			var loginInfoElement = document.querySelector('.logininfo');
+			// logininfoクラスのpadding-topを設定
+			if (loginInfoElement) 
+			{
+				loginInfoElement.style.paddingTop = headerHeight + "px";
+			}
+		}
+	</script>
+
+</body>
+
+</html>

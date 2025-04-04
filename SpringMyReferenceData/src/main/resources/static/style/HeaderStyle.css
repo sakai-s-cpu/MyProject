@@ -1,0 +1,35 @@
+@charset "UTF-8";
+
+.HeaderMenuBackGround 
+{
+	position: fixed; /* ヘッダーを固定する */
+	top: 0; /* 上部から配置の基準位置を決める */
+	left: 0; /* 左から配置の基準位置を決める */
+	width: 100%; /* ヘッダーの横幅を指定する */
+	height: 45px; /* ヘッダーの高さを指定する */
+	padding: 30px 30px 0px 0px; /* ヘッダーの余白を指定する(上下左右) */
+	
+	/* バックグラウンドに指定することで背景画像を使える */
+	background: url(../img/big-photo0000-0335.jpg) center / cover;
+}
+.HeaderMenuGroup
+{
+  margin-left: auto;
+  display: flex;
+  flex: none;
+  justify-content: flex-end; 	/* 右寄せにする */
+  font-size: 16px;				/* フォントサイズ */
+  color: #fff;				/* テキストの色 */
+}
+
+/* 先頭(TOP)以外の子にスペースを適応 */
+.HeaderMenuGroup > * + *
+{
+  margin-left: 60px;	
+}
+
+/* 最後の子(お問い合わせ)の右側にスペースを追加 */
+.HeaderMenuGroup > .RightEdgeMenu
+{
+  margin-right: 30px;
+}

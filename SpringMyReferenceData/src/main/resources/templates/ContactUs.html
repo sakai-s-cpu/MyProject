@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th ="http://www.thymeleaf.org">
+
+<head>
+	
+	<meta charset="UTF-8">
+	<title>ContactUs</title>
+	
+	<link th:href="@{/style/HeaderStyle.css}" rel="stylesheet">
+	
+	<style>
+		.logininfo
+		{
+	  		padding-top: 75px; /* ヘッダーの高さ分の余白を追加 */
+		}
+		
+		/* エラーメッセージを横に表示するためのスタイル */
+		.error-message 
+		{
+		    color: red;
+		    margin-left: 10px;  /* 入力フィールドとエラーメッセージの間に隙間を作る */
+		    display: inline-block;
+		}
+	</style>
+	
+</head>
+
+<body>
+	<div th:insert="MenuHeader :: header">
+	</div>
+	
+	<div class = "logininfo">
+		<!-- th:object の名称(accountData)は コントローラ側でmodelに追加している名称と合わせる -->
+		<form th:action="@{/Login}" method="post" th:object="${accountData}">
+			<h3>[アカウント情報入力]</h3>
+			<label for="email">メールアドレス：</label>
+			<input type="email" name="email">
+			<!-- メールアドレスに関連するエラーメッセージ表示 -->
+			<span th:if="${#fields.hasErrors('email')}" th:each="err : ${#fields.errors('email')}" class="error-message" th:text="${err}"></span>
+			<br>
+			
+			<label for="password">パスワード　　：</label>
+			<!-- typeをパスワードにすることで 入力フォームに文字を打っても ●●● の表記になる -->
+			<input type="password" name="password">
+			<!-- パスワードに関連するエラーメッセージ表示 -->
+			<span th:if="${#fields.hasErrors('password')}" th:each="err : ${#fields.errors('password')}" class="error-message" th:text="${err}"></span>
+			<br><br>
+			
+			<!-- ログインボタン -->
+			<button type="submit">ログイン</button>
+		</form>
+	</div>
+	
+	<script>
+		// ページ読み込み時にヘッダーの高さを取得して、bodyにpadding-topを動的に設定
+		// offsetHeight を使って要素の高さを取得しているため、ボーダーやパディングなども考慮されるらしい。
+		window.onload = function()
+		{
+			var headerHeight = document.querySelector('.HeaderMenuBackGround').offsetHeight;
+			var loginInfoElement = document.querySelector('.logininfo');
+			// logininfoクラスのpadding-topを設定
+			if (loginInfoElement) 
+			{
+				loginInfoElement.style.paddingTop = headerHeight + "px";
+			}
+		}
+	</script>
+	
+</body>
+
+</html>

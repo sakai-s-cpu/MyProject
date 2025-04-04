@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th ="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Forest</title>
+	
+	<link th:href="@{/style/forestBackStyle.css}" rel="stylesheet">
+	<link th:href="@{/style/HeaderStyle.css}" rel="stylesheet">
+</head>
+
+<body>
+	<div th:insert="ForestBack :: forest">
+	</div>
+	<div th:insert="MenuHeader :: header">
+	</div>
+</body>
+
+</html>

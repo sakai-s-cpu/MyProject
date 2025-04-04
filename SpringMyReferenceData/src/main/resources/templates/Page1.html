@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html xmlns:th ="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Page1</title>
+	
+	<link th:href="@{/style/HeaderStyle.css}" rel="stylesheet">
+	
+	<style>
+		.gameScreen
+		{
+			padding-top: 75px; /* ヘッダーの高さ分の余白を追加 */
+		}
+
+	    canvas 
+		{
+	       	padding: 0;
+	      	background: dimgray;
+	      	display: block;
+	     	margin: 0 auto;
+	    }
+		
+		/* マウス座標表示用のスタイル */
+		.mousePos
+		{
+		    top: 10px;
+		    left: 10px;
+		    font-size: 16px;
+		    color: #000;
+		}
+	</style>
+	
+</head>
+
+<body>
+	<div th:insert="MenuHeader :: header">
+	</div>
+	
+	<div class = "gameScreen">
+		<canvas id="myCanvas" width="480" height="320"></canvas>
+		
+		<!-- 座標表示用のdiv -->
+		<div class="mousePos" id="mousePos">X: 0, Y: 0</div>
+	</div>
+	
+	<script>
+		
+		// 矩形
+		class Paddle 
+		{
+			// コンストラクタ
+			constructor(x = 0, y = 0, w = 0, h = 0, speed = 0) 
+			{
+				this.pos = new Vector2(x, y);
+				this.w = w;
+				this.h = h;
+				this.speed = 0;
+			}
+			
+			setSpeed(val)
+			{
+				this.speed = val;
+			}
+		}
+		
+		// 矩形
+		class Rect 
+		{
+			// コンストラクタ
+			constructor(x = 0, y = 0, w = 0, h = 0) 
+			{
+				this.pos = new Vector2(x, y);
+				this.w = w;
+				this.h = h;
+			}
+		}
+		
+		// 矩形
+		class Circle 
+		{
+			// コンストラクタ
+			constructor(x = 0, y = 0, vec = new Vector2(2,-2), radius = 4) 
+			{
+				this.pos = new Vector2(x, y);
+				this.vec = vec;
+				this.radius = radius;
+			}	
+		}
+		
+		// x成分とy成分を持つ2次元ベクトル
+		// https://qiita.com/Nekonecode/items/523a9e7214082129935e を参考に作成
+		class Vector2 
+		{
+			// コンストラクタ
+			constructor(x = 0, y = 0) 
+			{
+				this.x = x;
+			    this.y = y;
+			}
+			
+			// xとyをセットする
+			set(x, y) 
+			{
+			    this.x = x;
+			    this.y = y;
+			    return this;
+			}
+			
+			// 足し算
+			add(v) 
+			{
+			  	this.x += v.x;
+			  	this.y += v.y;
+			  	return this;
+			}
+			
+			// 引き算
+			sub(v) 
+			{
+			  	this.x -= v.x;
+			  	this.y -= v.y;
+			  	return this;
+			}
+			
+			// ベクトルの複製
+			clone() 
+			{
+			  	return new Vector2(this.x, this.y);
+			}
+			
+			// ベクトルの実数倍
+			times(num) 
+			{
+			  	this.x *= num;
+			  	this.y *= num;
+			  	return this;
+			}
+			
+			// 逆ベクトル
+			get inverse() 
+			{
+			  	return this.clone().times(-1);
+			}
+			
+			// ベクトルの大きさ
+			get magnitude() 
+			{
+			  	const { x, y } = this;
+			  	return Math.sqrt(this.x**2 + this.y**2);
+			}
+			
+			// 正規化
+			get normalized() 
+			{
+				const { x, y, magnitude } = this;
+				return new Vector2(x / magnitude, y / magnitude);
+			}
+			
+			// static ベクトルの引き算
+			static sub(v1, v2) 
+			{
+			  	return v1.clone().sub(v2);
+			}
+			
+			// ２点の距離
+			static distance(v1, v2) 
+			{
+			  	return Vector2.sub(v1, v2).magnitude;
+			}
+			
+			static get zero() 
+			{
+			  	return new Vector2(0,0);
+			}
+
+			static get one() 
+			{
+			  	return new Vector2(1, 1);
+			}
+			
+			static get right() 
+			{
+			  	return new Vector2(1, 0);
+			}
+			
+			// ベクトル内積
+			static dot(v1, v2) 
+			{
+			  	return (v1.x * v2.x + v1.y * v2.y);
+			}
+			
+			// ベクトル外積
+			static cross(v1, v2) 
+			{
+			  	return (v1.x * v2.y - v1.y * v2.x);
+			}
+
+			// ２つのベクトルABのなす角度θを求める
+			// http://www.sousakuba.com/Programming/gs_two_vector_angle.html を参考
+			static degOf2Vector(v1)
+			{
+				// ※ベクトルの長さが0だと答えが出ませんので注意
+
+				// ベクトルAとBの長さを計算する
+				var length_base = Vector2.right().magnitude;
+				var length_v1 = v1.magnitude;
+
+				// 内積とベクトル長さを使ってcosθを求める
+				var cos_sita = Vector2.dot(Vector2.right(), v1) / ( length_base * length_v1 );
+
+				//cosθからθを求める
+				var sita = Math.acos( cos_sita );
+
+				// ラジアンからディグリー変換
+				sita = sita * 180.0 / Math.PI;
+
+				return sita;
+			}
+			
+			// 角度からベクトル
+			static vec2OfDeg(deg)
+			{
+				var rad = deg * (Math.PI /180)
+				return new Vector2(Math.cos(rad), Math.sin(rad))
+			}
+		}
+		
+		// 外積
+		function cross(ax,ay,bx,by)
+		{
+		     return ax * by - bx * ay;
+		}
+
+		// 範囲内かチェック
+		function pointInCheck(rect = new Rect(), point = new Vector2())
+		{
+			if (!(point instanceof Vector2))
+			{
+			 	throw new Error('引数はVector2型でなければなりません');
+			}
+			
+			if (!(rect instanceof Rect))
+			{
+			 	throw new Error('引数はRect型でなければなりません');
+			}
+			
+			// TODO:このはんていがおかしいので直す
+		    var a = cross( -rect.w,  		0, point.x - rect.w - rect.pos.x, 		   point.y - rect.pos.y);
+			var b = cross(  	   0,  rect.h, 			point.x - rect.pos.x, 		   point.y - rect.pos.y);
+			var c = cross(  rect.w,  		0, 			point.x - rect.pos.x, point.y - rect.pos.y - rect.h);
+			var d = cross(  	   0, -rect.h, point.x - rect.w - rect.pos.x, point.y - rect.h - rect.pos.y);
+
+			if(a < 0 && b < 0 && c < 0 && d < 0)
+			{
+				console.log("ヒット");
+			 	return true;
+			}
+			
+		    return false;
+		}
+
+		// 衝突チェック
+		function chkCollison(rect = new Rect(), circle = new Circle())
+		{			
+			if (!(rect instanceof Rect))
+			{
+			 	throw new Error('引数はRect型でなければなりません');
+			}
+			
+			var pos1 = new Vector2(rect.pos.x + (rect.w / 2), rect.pos.y + (rect.h / 2));
+			var pos2 = new Vector2(circle.pos.x, circle.pos.y);
+			
+			// 正規化
+			var targetVec = Vector2.sub(pos2, pos1);
+			targetVec = targetVec.normalized;
+			
+			// チェック座標
+			var point = targetVec.times(circle.radius);
+			
+			// 衝突チェック
+		    return pointInCheck(rect, point);
+		}
+		
+		// キャンバス		
+		const canvas = document.getElementById("myCanvas");
+		const ctx = canvas.getContext("2d");
+		
+		//　マウス座標
+		const mousePos = document.getElementById("mousePos");
+		
+		// パドル
+		var paddle = null;
+		// 円の情報を管理するリスト
+		var circleInfoList = new Array();
+		// 障害物情報を管理するリスト
+		var obstacleList = new Array();
+		
+		// パドル生成
+		function createPaddle(x, y)
+		{
+			var width = 64;
+			var height = 8;
+			paddle = new Paddle(x - (width / 2), y, width, height);
+		}
+		
+		// 円生成
+		function createCircle(x, y)
+		{
+			var circle = new Circle(x,y);
+			circleInfoList.push(circle);
+		}
+		
+		// 障害物生成（ハート型に配置）
+		function createObstacle()
+		{
+			const centerX = canvas.width / 2; 	// キャンバスの中央X座標
+			const centerY = canvas.height / 2; 	// キャンバスの中央Y座標
+			const scale = 8; 					// ハート型の大きさを調整
+			const rate = 0.5;					// 間隔( 0～1.0 の間で指定 )
+			
+			for (let t = 0; t <= Math.PI * 2; t += rate) 
+			{
+			   	// パラメトリック方程式に基づいてX, Yを計算
+			    const x = 16 * Math.pow(Math.sin(t), 3);
+			    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+			    // スケーリングと中心合わせ
+				var rect = new Rect(centerX + x * scale, centerY - y * scale, 16, 16);
+				obstacleList.push(rect);
+			}
+		}
+		
+		// 初期化
+		function initialize() 
+		{
+			var center = new Vector2(canvas.width / 2 , canvas.height / 2);
+						
+			createPaddle(center.x, center.y);
+			
+			createObstacle();
+			
+			createCircle(center.x, center.y);
+		}
+				
+		// ページ読み込み時にヘッダーの高さを取得して、bodyにpadding-topを動的に設定
+		// offsetHeight を使って要素の高さを取得しているため、ボーダーやパディングなども考慮されるらしい。
+		window.onload = function()
+		{
+			var headerHeight = document.querySelector('.HeaderMenuBackGround').offsetHeight;
+			var gameScreenElement = document.querySelector('.gameScreen');
+			// logininfoクラスのpadding-topを設定
+			if (gameScreenElement) 
+			{
+				gameScreenElement.style.paddingTop = headerHeight + "px";
+			}
+			
+			initialize();
+		}
+
+		// キャンバス内でマウスを動かした時のイベント
+		canvas.addEventListener('mousemove', (event) => 
+		{
+		  	var rect = event.target.getBoundingClientRect();
+		  	var x = event.clientX - rect.left;
+		  	var y = event.clientY - rect.top;
+			
+			// 座標を画面上に表示
+			mousePos.textContent = `X: ${x}, Y: ${y}`;
+		});
+		
+		// キャンバス内でマウスをクリックした時のイベント
+		canvas.addEventListener('click', function(event) 
+		{
+			var rect = event.target.getBoundingClientRect();
+			var x = event.clientX - rect.left;
+			var y = event.clientY - rect.top;
+			
+			createCircle(x, y);
+			
+			createArc(event);
+		});
+		
+		// キーボード操作（キーが押下されたとき・離されたとき）
+		document.addEventListener("keydown", keyDownHandler, false);
+		document.addEventListener("keyup", keyUpHandler, false);
+		
+		// キーが押下されたとき
+		function keyDownHandler(event) 
+		{
+			var speed = 6;
+			
+		  	if (event.key === "Right" || event.key === "ArrowRight") 
+			{
+				paddle.setSpeed(speed);
+		  	}
+			else if (event.key === "Left" || event.key === "ArrowLeft") 
+			{
+				paddle.setSpeed(-speed);
+		  	}
+		}
+
+		// キーが離されたとき
+		function keyUpHandler(event)
+		{
+		  	if (event.key === "Right" || event.key === "ArrowRight") 
+			{
+				paddle.setSpeed(0);
+		  	} 
+			else if (event.key === "Left" || event.key === "ArrowLeft") 
+			{
+				paddle.setSpeed(0);
+		  	}
+		}
+	
+		// 更新
+		function update()
+		{	
+			// 座標更新
+			for (var i = 0; i < circleInfoList.length; i++) 
+			{
+				// 座標更新
+				circleInfoList[i].pos.x += circleInfoList[i].vec.x;
+				circleInfoList[i].pos.y += circleInfoList[i].vec.y;
+				
+				// 円が壁に当たると反転する
+			  	if (circleInfoList[i].pos.x > canvas.width - circleInfoList[i].radius || circleInfoList[i].pos.x < circleInfoList[i].radius) 
+				{
+					circleInfoList[i].vec.x = -circleInfoList[i].vec.x;
+				}
+				// 円が壁に当たると反転する
+				if (circleInfoList[i].pos.y + circleInfoList[i].vec.y < circleInfoList[i].radius) 
+				{
+					circleInfoList[i].vec.y = -circleInfoList[i].vec.y;
+				}
+				
+				// 障害物とのヒットチェック
+				for (var j = 0; j < obstacleList.length; j++)
+				{
+					var hit = chkCollison(obstacleList[j], circleInfoList[i]);
+					
+					if(hit)
+					{
+						console.log("ヒット");
+						
+						var deg = Vector2.degOf2Vector(circleInfoList[i].vec);
+						deg = circleInfoList[i].vec.x > 0 ? deg - 45 : deg + 45;
+						
+						var newVec = Vector2.vec2OfDeg(deg);
+						newVec.normalized;
+						newVec.times(circleInfoList[i].magnitude);
+						
+						circleInfoList[i].vec.set(newVec.x, newVec.y);
+					}
+				}
+				
+				// 円が地面にぶつかると消滅(リストから要素を消す)
+				if (circleInfoList[i].pos.y > canvas.height - circleInfoList[i].radius) 
+				{
+					circleInfoList.splice( i, 1 );
+				}
+				
+				// 全ての円が消滅したら
+				if(circleInfoList.length == 0)
+				{
+					gameOver();
+				}
+			}
+								
+			// パドルの左右移動
+			paddle.pos.x = Math.min(paddle.pos.x + paddle.speed, canvas.width - paddle.w);
+			paddle.pos.x = Math.max(paddle.pos.x + paddle.speed, 0);
+		}
+		
+		// パドル描画
+		function drawPaddle() 
+		{
+		  	ctx.beginPath();
+		  	ctx.rect(paddle.pos.x, canvas.height - paddle.h, paddle.w, paddle.h);
+		  	ctx.fillStyle = "#0095DD";
+		  	ctx.fill();
+		  	ctx.closePath();
+		}
+		
+		// ボール描画
+		function drawCircle() 
+		{			
+			// 円を生成
+			for (var i = 0; i < circleInfoList.length; i++) 
+			{
+		  		ctx.beginPath();
+		  		ctx.arc(circleInfoList[i].pos.x, circleInfoList[i].pos.y, circleInfoList[i].radius , 0, Math.PI * 2);
+			  	ctx.fillStyle = "#0095DD";
+			  	ctx.fill();
+			  	ctx.closePath();
+			}
+		}
+				
+		// 障害物描画
+		function drawObstacle() 
+		{
+			for (var i = 0; i < obstacleList.length; i++) 
+			{
+		  		ctx.beginPath();
+		  		ctx.rect(obstacleList[i].pos.x, obstacleList[i].pos.y, obstacleList[i].w, obstacleList[i].h);
+			  	ctx.fillStyle = "#ff0000";
+			  	ctx.fill();
+			  	ctx.closePath();
+			}
+		}
+		
+		// 描画コード
+		function draw() 
+		{
+			// キャンバス内の領域にある内容全てを消去
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+		
+			// 障害物描画
+			drawObstacle();
+
+			// 円生成
+			drawCircle();
+			
+			// パドル描画
+			drawPaddle();
+		}
+		
+		// ゲームループ
+		function gameLoop()
+		{
+			update();
+			draw();
+		}
+		
+		// 10Fごとに更新される
+		const interval = setInterval(gameLoop, 10);
+
+		// ゲームオーバー時の処理で停止するように変更
+		function gameOver() 
+		{
+		 	alert("GAME OVER");
+		  	clearInterval(interval); 	// ゲームの更新を停止
+		  	document.location.reload();
+		}
+
+	</script>
+	
+</body>
+
+</html>

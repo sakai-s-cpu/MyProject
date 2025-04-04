@@ -1,0 +1,23 @@
+@charset "UTF-8";
+
+.container
+{
+	position: relative;
+	width: 100%;
+	max-width: 1500px; /* 画像の幅に合わせる */
+}
+.container img 
+{
+	width: 100%;
+	height: auto;
+}
+.container h1 
+{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: white; /* テキスト色を白に設定 */
+	font-size: 3em; /* テキストサイズ */
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* テキストに影を追加して見やすく */
+}

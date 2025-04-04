@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th ="http://www.thymeleaf.org">
+	
+<head>
+	<meta charset="UTF-8">
+	<title>Header</title>
+</head>
+
+<body>
+	
+	<div th:fragment="header">
+		
+		<div class="HeaderMenuBackGround">
+		
+			<div class="HeaderMenuGroup">
+				<a href="./MainPage.html" th:href="@{/}">TOP</a>
+				<a href="./Page1.html" th:href="@{/page1}">PAGE1</a>
+				<a href="./Page2.html" th:href="@{/page2}">PAGE2</a>
+				<a href= "./ContactUs.html" th:href="@{/contactUs}" class="RightEdgeMenu">お問い合わせ</a>
+			</div>
+		
+		</div>
+	
+	</div>
+	
+</body>
+
+</html>
