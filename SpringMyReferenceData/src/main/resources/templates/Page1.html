@@ -281,7 +281,6 @@
 			var width = 64;
 			var height = 8;
 			var offsetY = 16;
-
 			paddle = new Paddle(x - (width / 2), y - (height / 2) - offsetY, width, height);			
 		}
 		
@@ -317,17 +316,41 @@
 			obstacleList.push(rect);
 		}
 		
-		// 障害物生成（ハート型に配置）
+		// 障害物生成
 		function createObstacle()
 		{
 			const centerX = canvas.width / 2; 	// キャンバスの中央X座標
-			const centerY = canvas.height / 2; 	// キャンバスの中央Y座標
-			const scale = 8; 					// ハート型の大きさを調整
-			const rate = 0.5;					// 間隔( 0～1.0 の間で指定 )
+			const rectWidthNum = 24;			// 矩形の横の数
+			const rectHeightNum = 6;			// 矩形の縦の数
+			const rectSpace = 8;				// 矩形の間隔
+			const rectSize = 8;					// 矩形の大きさ
+			const rectSizeHarf = rectSize / 2;
 			
-			// デバッグ用矩形
-			//var rect = new Rect(centerX - 32, centerY - 32 , 32, 64);
-			//obstacleList.push(rect);
+			var width = rectSize * rectWidthNum + (rectSpace * (rectWidthNum - 1));
+			
+			for(var j = 0; j < rectHeightNum; j++)
+			{
+				var posX = centerX - (width / 2);
+				var posY = (rectSize + rectSpace) * j;
+				
+				// パラメトリック方程式に基づいてX, Yを計算
+				for (var i = 0; i < rectWidthNum; i++)
+				{
+					// スケーリングと中心合わせ
+					var rect = new Rect(posX, posY, rectSize, rectSize);
+					posX += rectSize + rectSpace;
+					obstacleList.push(rect);
+				}
+			}
+		}
+		
+		// 障害物生成（ハート型に配置）
+		function createObstacleHeart()
+		{
+			const centerX = canvas.width / 2; 	// キャンバスの中央X座標
+			const centerY = canvas.height / 2; 	// キャンバスの中央Y座標
+			const scale = 5; 					// ハート型の大きさを調整
+			const rate = 0.2;					// 間隔( 0～1.0 の間で指定 )
 			
 			// パラメトリック方程式に基づいてX, Yを計算
 			for (let t = 0; t <= Math.PI * 2; t += rate) 
@@ -335,7 +358,7 @@
 			    const x = 16 * Math.pow(Math.sin(t), 3);
 			    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
 			    // スケーリングと中心合わせ
-				var rect = new Rect(centerX + x * scale, centerY - y * scale, 16, 16);
+				var rect = new Rect(centerX + x * scale, centerY - y * scale, 8, 8);
 				obstacleList.push(rect);
 			}
 		}
@@ -402,6 +425,8 @@
 						
 			createPaddle(center.x, canvas.height);
 			
+			createObstacleHeart();
+			
 			createObstacle();
 			
 			createCircle(center.x, center.y);
@@ -439,7 +464,7 @@
 			var rect = event.target.getBoundingClientRect();
 			var x = event.clientX - rect.left;
 			var y = event.clientY - rect.top;			
-			createDebugCircle(x, y);
+			createCircle(x, y);
 		});
 		
 		// キーボード操作（キーが押下されたとき・離されたとき）
@@ -478,7 +503,6 @@
 		function hitCircleToPaddle(circle)
 		{
 			var hit = chkCollison(paddle.rect, circle);
-										
 			if (hit === true)
 			{				
 				circle.vec.y = -circle.vec.y;
@@ -535,6 +559,9 @@
 							circle.pos.x = center.x + (obstacleList[j].w / 2) + circle.radius;
 						}
 					}
+					
+					// 障害物を消す
+					obstacleList.splice( j, 1 );
 				}
 			}
 		}
@@ -577,6 +604,12 @@
 				{
 					gameOver();
 				}
+			}
+			
+			// ゲームクリア
+			if(obstacleList.length == 0)
+			{
+				//gameClear();
 			}
 								
 			// パドルの左右移動
@@ -651,6 +684,14 @@
 		function gameOver() 
 		{
 		 	alert("GAME OVER");
+		  	clearInterval(interval); 	// ゲームの更新を停止
+		  	document.location.reload();
+		}
+		
+		// ゲームクリア時の処理で停止するように変更
+		function gameClear() 
+		{
+		 	alert("GAME CLEAR");
 		  	clearInterval(interval); 	// ゲームの更新を停止
 		  	document.location.reload();
 		}
