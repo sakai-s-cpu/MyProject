@@ -47,24 +47,6 @@
 	<script>
 		
 		// 矩形
-		class Paddle 
-		{
-			// コンストラクタ
-			constructor(x = 0, y = 0, w = 0, h = 0, speed = 0) 
-			{
-				this.pos = new Vector2(x, y);
-				this.w = w;
-				this.h = h;
-				this.speed = 0;
-			}
-			
-			setSpeed(val)
-			{
-				this.speed = val;
-			}
-		}
-		
-		// 矩形
 		class Rect 
 		{
 			// コンストラクタ
@@ -85,7 +67,23 @@
 				this.pos = new Vector2(x, y);
 				this.vec = vec;
 				this.radius = radius;
-			}	
+			}
+		}
+		
+		// 矩形
+		class Paddle 
+		{
+			// コンストラクタ
+			constructor(x = 0, y = 0, w = 0, h = 0, speed = 0) 
+			{
+				this.rect = new Rect(x, y, w, h);
+				this.speed = 0;
+			}
+			
+			setSpeed(val)
+			{
+				this.speed = val;
+			}
 		}
 		
 		// x成分とy成分を持つ2次元ベクトル
@@ -157,6 +155,11 @@
 				return new Vector2(x / magnitude, y / magnitude);
 			}
 			
+			static add(v1, v2) 
+			{
+			  	return v1.clone().add(v2);
+			}
+			
 			// static ベクトルの引き算
 			static sub(v1, v2) 
 			{
@@ -200,20 +203,23 @@
 			// http://www.sousakuba.com/Programming/gs_two_vector_angle.html を参考
 			static degOf2Vector(v1)
 			{
-				// ※ベクトルの長さが0だと答えが出ませんので注意
+				// ※ベクトルの長さが0だと答えが出ない
 
 				// ベクトルAとBの長さを計算する
-				var length_base = Vector2.right().magnitude;
+				var length_base = Vector2.right.magnitude;
 				var length_v1 = v1.magnitude;
 
 				// 内積とベクトル長さを使ってcosθを求める
-				var cos_sita = Vector2.dot(Vector2.right(), v1) / ( length_base * length_v1 );
+				var cos_sita = Vector2.dot(Vector2.right, v1) / ( length_base * length_v1 );
 
-				//cosθからθを求める
+				// cosθからθを求める
 				var sita = Math.acos( cos_sita );
 
 				// ラジアンからディグリー変換
 				sita = sita * 180.0 / Math.PI;
+				
+				// 360度に変換
+				sita = Vector2.right.y < v1.y ? 360 - sita : sita;
 
 				return sita;
 			}
@@ -224,64 +230,37 @@
 				var rad = deg * (Math.PI /180)
 				return new Vector2(Math.cos(rad), Math.sin(rad))
 			}
-		}
-		
-		// 外積
-		function cross(ax,ay,bx,by)
-		{
-		     return ax * by - bx * ay;
+			
+			// ゼロベクトルのチェック
+			static isZeroVector(v) 
+			{
+			    return v.x === 0 && v.y === 0;
+			}
+
+			// ベクトル引き算
+			static safeSubtract(v1, v2) 
+			{
+			    const result = Vector2.sub(v1, v2);
+			    if (Vector2.isZeroVector(result)) 
+				{
+			        console.log("Zero vector detected between points:", v1, v2);
+			    }
+			    return result;
+			}
+
+			// ベクトル外積
+			static safeCross(v1, v2) 
+			{
+			    if (isZeroVector(v1) || isZeroVector(v2)) 
+				{
+			        console.log("Zero vector detected in cross product:", v1, v2);
+			        return 0; // 外積はゼロにする
+			    }
+			    return Vector2.cross(v1, v2);
+			}
+
 		}
 
-		// 範囲内かチェック
-		function pointInCheck(rect = new Rect(), point = new Vector2())
-		{
-			if (!(point instanceof Vector2))
-			{
-			 	throw new Error('引数はVector2型でなければなりません');
-			}
-			
-			if (!(rect instanceof Rect))
-			{
-			 	throw new Error('引数はRect型でなければなりません');
-			}
-			
-			// TODO:このはんていがおかしいので直す
-		    var a = cross( -rect.w,  		0, point.x - rect.w - rect.pos.x, 		   point.y - rect.pos.y);
-			var b = cross(  	   0,  rect.h, 			point.x - rect.pos.x, 		   point.y - rect.pos.y);
-			var c = cross(  rect.w,  		0, 			point.x - rect.pos.x, point.y - rect.pos.y - rect.h);
-			var d = cross(  	   0, -rect.h, point.x - rect.w - rect.pos.x, point.y - rect.h - rect.pos.y);
-
-			if(a < 0 && b < 0 && c < 0 && d < 0)
-			{
-				console.log("ヒット");
-			 	return true;
-			}
-			
-		    return false;
-		}
-
-		// 衝突チェック
-		function chkCollison(rect = new Rect(), circle = new Circle())
-		{			
-			if (!(rect instanceof Rect))
-			{
-			 	throw new Error('引数はRect型でなければなりません');
-			}
-			
-			var pos1 = new Vector2(rect.pos.x + (rect.w / 2), rect.pos.y + (rect.h / 2));
-			var pos2 = new Vector2(circle.pos.x, circle.pos.y);
-			
-			// 正規化
-			var targetVec = Vector2.sub(pos2, pos1);
-			targetVec = targetVec.normalized;
-			
-			// チェック座標
-			var point = targetVec.times(circle.radius);
-			
-			// 衝突チェック
-		    return pointInCheck(rect, point);
-		}
-		
 		// キャンバス		
 		const canvas = document.getElementById("myCanvas");
 		const ctx = canvas.getContext("2d");
@@ -301,7 +280,9 @@
 		{
 			var width = 64;
 			var height = 8;
-			paddle = new Paddle(x - (width / 2), y, width, height);
+			var offsetY = 16;
+
+			paddle = new Paddle(x - (width / 2), y - (height / 2) - offsetY, width, height);			
 		}
 		
 		// 円生成
@@ -309,6 +290,31 @@
 		{
 			var circle = new Circle(x,y);
 			circleInfoList.push(circle);
+		}
+		
+		// 円生成
+		function createDebugCircle(x, y)
+		{
+			var circle = new Circle(x,y,new Vector2(1,-1), 20);
+			// 障害物とのヒットチェック
+			for (var j = 0; j < obstacleList.length; j++)
+			{
+				var hit = chkCollison(obstacleList[j], circle);
+	
+				if(hit)
+				{
+					console.log("ヒット");
+				}
+			}
+			circleInfoList.push(circle);
+		}
+		
+		// 障害物生成デバッグ用
+		function createDebugObstacle(x, y, w, h)
+		{
+			// スケーリングと中心合わせ
+			var rect = new Rect(x, y, w, h);
+			obstacleList.push(rect);
 		}
 		
 		// 障害物生成（ハート型に配置）
@@ -319,9 +325,13 @@
 			const scale = 8; 					// ハート型の大きさを調整
 			const rate = 0.5;					// 間隔( 0～1.0 の間で指定 )
 			
+			// デバッグ用矩形
+			//var rect = new Rect(centerX - 32, centerY - 32 , 32, 64);
+			//obstacleList.push(rect);
+			
+			// パラメトリック方程式に基づいてX, Yを計算
 			for (let t = 0; t <= Math.PI * 2; t += rate) 
 			{
-			   	// パラメトリック方程式に基づいてX, Yを計算
 			    const x = 16 * Math.pow(Math.sin(t), 3);
 			    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
 			    // スケーリングと中心合わせ
@@ -330,12 +340,67 @@
 			}
 		}
 		
+		// 範囲内かチェック
+		// https://www.nekonecode.com/math-lab/pages/collision2/point-and-box を参考
+		function pointInCheck(rect, point)
+		{
+			// 矩形の４点算出　(左上：Ｐ１ 右上：Ｐ２ 右下：Ｐ３ 左下：Ｐ４)
+			var p1 = new Vector2(rect.pos.x, rect.pos.y);
+			var p2 = new Vector2(rect.pos.x + rect.w ,rect.pos.y);
+			var p3 = new Vector2(rect.pos.x + rect.w ,rect.pos.y + rect.h);
+			var p4 = new Vector2(rect.pos.x, rect.pos.y + rect.h);
+			
+			// 矩形の各辺のベクトル
+			var vec1to2 = Vector2.sub(p2, p1);
+			var vec2to3 = Vector2.sub(p3, p2);
+			var vec3to4 = Vector2.sub(p4, p3);
+			var vec4to1 = Vector2.sub(p1, p4);
+					
+			// 矩形の4点からポイントに対するベクトル
+			var vec1toPoint = Vector2.sub(point, p1);
+			var vec2toPoint = Vector2.sub(point, p2);
+			var vec3toPoint = Vector2.sub(point, p3);
+			var vec4toPoint = Vector2.sub(point, p4);
+			
+			const datas = 
+			[
+				{v1: vec1to2, v2: vec1toPoint},
+				{v1: vec2to3, v2: vec2toPoint},
+				{v1: vec3to4, v2: vec3toPoint},
+				{v1: vec4to1, v2: vec4toPoint},
+			];
+			
+			// チェック(外積の結果が０以上の物は矩形の各線分ベクトルの内側判定)
+			for(const data of datas)
+			{
+				var cross = Vector2.cross(data.v1, data.v2);
+				if (0 >= cross) return false;
+			}
+
+			return true;
+		}
+
+		// 衝突チェック
+		function chkCollison(rect, circle)
+		{
+			// 矩形の中心座標
+			var pos1 = new Vector2(rect.pos.x + rect.w / 2, rect.pos.y + rect.h / 2);
+			// 目標までのベクトル
+			var targetVec = Vector2.sub(pos1, circle.pos);
+			// 正規化 & ベクトルを半径分大きくする
+			var circleFromCenterToEdgeVec = targetVec.normalized.times(circle.radius);
+			// チェック座標
+			var edgePos = Vector2.add(circle.pos, circleFromCenterToEdgeVec);
+			// 衝突チェック
+			return pointInCheck(rect, edgePos);
+		}
+				
 		// 初期化
 		function initialize() 
 		{
 			var center = new Vector2(canvas.width / 2 , canvas.height / 2);
 						
-			createPaddle(center.x, center.y);
+			createPaddle(center.x, canvas.height);
 			
 			createObstacle();
 			
@@ -373,11 +438,8 @@
 		{
 			var rect = event.target.getBoundingClientRect();
 			var x = event.clientX - rect.left;
-			var y = event.clientY - rect.top;
-			
-			createCircle(x, y);
-			
-			createArc(event);
+			var y = event.clientY - rect.top;			
+			createDebugCircle(x, y);
 		});
 		
 		// キーボード操作（キーが押下されたとき・離されたとき）
@@ -411,6 +473,71 @@
 				paddle.setSpeed(0);
 		  	}
 		}
+		
+		// 円と障害物の衝突判定
+		function hitCircleToPaddle(circle)
+		{
+			var hit = chkCollison(paddle.rect, circle);
+										
+			if (hit === true)
+			{				
+				circle.vec.y = -circle.vec.y;
+				circle.pos.y = paddle.rect.pos.y - circle.radius;
+			}
+		}
+		
+		// 円と障害物の衝突判定
+		function hitCircleToObject(circle)
+		{
+			// 障害物とのヒットチェック
+			for(var j = 0; j < obstacleList.length; j++)
+			{					
+				var hit = chkCollison(obstacleList[j], circle);
+								
+				if (hit === true)
+				{
+					// 中心座標
+					var center = new Vector2(obstacleList[j].pos.x + obstacleList[j].w / 2, obstacleList[j].pos.y + obstacleList[j].h / 2);
+					var targetVec = Vector2.sub(center, circle.pos);
+					var targetdeg = Vector2.degOf2Vector(targetVec);
+									
+					var obstacleLeftDownPos = new Vector2(obstacleList[j].pos.x,  obstacleList[j].pos.y + obstacleList[j].h);
+					var vec = Vector2.sub(center, obstacleLeftDownPos);
+					var deg = Vector2.degOf2Vector(vec);
+
+					// 上下衝突
+					if((targetdeg > deg && targetdeg < 180 - deg) || (targetdeg < 360 - deg && targetdeg > 180 + deg))
+					{
+						circle.vec.y = -circle.vec.y;
+										
+						// 位置の補正
+						if(targetVec.y < 0)
+						{
+							circle.pos.y = center.y + (obstacleList[j].h / 2) + circle.radius;
+						}
+						else
+						{
+							circle.pos.y = center.y - (obstacleList[j].h / 2) - circle.radius;
+						}
+					}
+					// 左右衝突
+					else 
+					{
+						circle.vec.x = -circle.vec.x;
+										
+						// 位置の補正
+						if(targetVec.x > 0)
+						{
+							circle.pos.x = center.x - (obstacleList[j].w / 2) - circle.radius;
+						}
+						else
+						{
+							circle.pos.x = center.x + (obstacleList[j].w / 2) + circle.radius;
+						}
+					}
+				}
+			}
+		}
 	
 		// 更新
 		function update()
@@ -433,25 +560,11 @@
 					circleInfoList[i].vec.y = -circleInfoList[i].vec.y;
 				}
 				
-				// 障害物とのヒットチェック
-				for (var j = 0; j < obstacleList.length; j++)
-				{
-					var hit = chkCollison(obstacleList[j], circleInfoList[i]);
-					
-					if(hit)
-					{
-						console.log("ヒット");
-						
-						var deg = Vector2.degOf2Vector(circleInfoList[i].vec);
-						deg = circleInfoList[i].vec.x > 0 ? deg - 45 : deg + 45;
-						
-						var newVec = Vector2.vec2OfDeg(deg);
-						newVec.normalized;
-						newVec.times(circleInfoList[i].magnitude);
-						
-						circleInfoList[i].vec.set(newVec.x, newVec.y);
-					}
-				}
+				// 円とパドルの衝突判定
+				hitCircleToPaddle(circleInfoList[i]);
+				
+				// 円と障害物の衝突判定
+				hitCircleToObject(circleInfoList[i]);
 				
 				// 円が地面にぶつかると消滅(リストから要素を消す)
 				if (circleInfoList[i].pos.y > canvas.height - circleInfoList[i].radius) 
@@ -467,15 +580,15 @@
 			}
 								
 			// パドルの左右移動
-			paddle.pos.x = Math.min(paddle.pos.x + paddle.speed, canvas.width - paddle.w);
-			paddle.pos.x = Math.max(paddle.pos.x + paddle.speed, 0);
+			paddle.rect.pos.x = Math.min(paddle.rect.pos.x + paddle.speed, canvas.width - paddle.rect.w);
+			paddle.rect.pos.x = Math.max(paddle.rect.pos.x + paddle.speed, 0);
 		}
 		
 		// パドル描画
 		function drawPaddle() 
 		{
 		  	ctx.beginPath();
-		  	ctx.rect(paddle.pos.x, canvas.height - paddle.h, paddle.w, paddle.h);
+		  	ctx.rect(paddle.rect.pos.x, paddle.rect.pos.y, paddle.rect.w, paddle.rect.h);
 		  	ctx.fillStyle = "#0095DD";
 		  	ctx.fill();
 		  	ctx.closePath();
