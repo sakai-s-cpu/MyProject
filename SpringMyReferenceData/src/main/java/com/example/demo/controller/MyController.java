@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.example.demo.account.data.AccountData;
+import com.example.demo.score.data.ScoreData;
 
 @Controller
 public class MyController
@@ -43,6 +44,14 @@ public class MyController
 	public String contactUsPage()
 	{
 		return "ContactUs";
+	}
+	
+	@GetMapping("ranking")
+	public String Ranking(Model model, ScoreData data, BindingResult bindingResult)
+	{
+		// modelに格納する
+        model.addAttribute("scoreData", data);
+		return "Ranking";
 	}
 	
 	@PostMapping("Login")

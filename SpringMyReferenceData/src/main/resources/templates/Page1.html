@@ -41,8 +41,11 @@
 		<canvas id="myCanvas" width="480" height="320"></canvas>
 				
 		<button type="button" id="button">ゲーム開始</button><br>
-		
-		<score id="score">SCORE: 0</score>
+				
+		<form th:action="@{/Ranking}" method="post" th:object="${scoreData}">
+			<!--<score th:field="*{score}" id="score" value="0">SCORE: 0</score>-->
+			<s name="score" id="score">SCORE: 0</s>
+		<form>
 		
 		<!-- 座標表示用のdiv -->
 		<div class="mousePos" id="mousePos">X: 0, Y: 0</div>
@@ -288,7 +291,9 @@
 			{
 				alert("GAME OVER");
 				clearInterval(this.function); 	// ゲームの更新を停止
-				document.location.reload();
+				// hrefプロパティを使う
+				window.location.href = 'ranking';
+				//document.location.reload();
 			}
 			
 			clearFunction()
@@ -421,7 +426,8 @@
 		
 		// スコア
 		function getScore()
-		{
+		{			
+			//　スコア
 			const score = document.getElementById("score");
 					
 			// その要素のテキスト（SCORE: 0）を取得

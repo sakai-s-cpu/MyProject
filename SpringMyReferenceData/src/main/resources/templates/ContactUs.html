@@ -34,6 +34,16 @@
 		<form th:action="@{/Login}" method="post" th:object="${accountData}">
 			<h3>[アカウント情報入力]</h3>
 			<label for="email">メールアドレス：</label>
+			
+			<!--
+				Spring MVC がフォームデータを自動的に accountData オブジェクトに
+				バインドしているため、
+				フォームフィールド（name="email" や name="password"）に入力された値は、
+				@ModelAttribute("accountData") によって
+				対応するプロパティ（accountData.setEmail()、accountData.setPassword()）
+				にセットされている。
+			-->
+			
 			<input type="email" name="email">
 			<!-- メールアドレスに関連するエラーメッセージ表示 -->
 			<span th:if="${#fields.hasErrors('email')}" th:each="err : ${#fields.errors('email')}" class="error-message" th:text="${err}"></span>
