@@ -39,6 +39,10 @@
 	
 	<div class = "gameScreen">
 		<canvas id="myCanvas" width="480" height="320"></canvas>
+				
+		<button type="button" id="button">ゲーム開始</button><br>
+		
+		<score id="score">SCORE: 0</score>
 		
 		<!-- 座標表示用のdiv -->
 		<div class="mousePos" id="mousePos">X: 0, Y: 0</div>
@@ -260,20 +264,55 @@
 			}
 
 		}
+		
+		// x成分とy成分を持つ2次元ベクトル
+		// https://qiita.com/Nekonecode/items/523a9e7214082129935e を参考に作成
+		class GameLoop 
+		{
+			// コンストラクタ
+			constructor(func) 
+			{
+				this.function = setInterval(func, 10);
+			}
+			
+			// クリア
+			gameClear()
+			{
+				alert("GAME CLEAR");
+				clearInterval(this.function); 	// ゲームの更新を停止
+				document.location.reload();			
+			}
+			
+			// ゲームオーバー時の処理で停止するように変更
+			gameOver() 
+			{
+				alert("GAME OVER");
+				clearInterval(this.function); 	// ゲームの更新を停止
+				document.location.reload();
+			}
+			
+			clearFunction()
+			{
+				clearInterval(this.function);
+			}
+		}
 
 		// キャンバス		
 		const canvas = document.getElementById("myCanvas");
-		const ctx = canvas.getContext("2d");
-		
-		//　マウス座標
-		const mousePos = document.getElementById("mousePos");
-		
+		const ctx = canvas.getContext("2d");		
 		// パドル
 		var paddle = null;
 		// 円の情報を管理するリスト
 		var circleInfoList = new Array();
 		// 障害物情報を管理するリスト
 		var obstacleList = new Array();
+
+		// ボタン情報
+		const button = document.getElementById('button');
+		// ゲームループ
+		var functionLoop = null;
+		// ブロック破壊数
+		var blockBreakNum = 0;
 		
 		// パドル生成
 		function createPaddle(x, y)
@@ -292,14 +331,30 @@
 		}
 		
 		// 円生成
+		function createCircleCenter()
+		{
+			const x = canvas.width / 2; 	// キャンバスの中央X座標
+			const y = canvas.height / 2; 	// キャンバスの中央Y座標
+			const speed = 3;
+			
+			var rate = Math.floor( Math.random() * 4 );
+			var randomDeg = 45 + (rate * 90);
+			var vec = Vector2.vec2OfDeg(randomDeg);	
+			vec.normalized;
+			vec.times(speed);
+			
+			var circle = new Circle(x,y,vec);
+			circleInfoList.push(circle);
+		}
+		
+		// 円生成
 		function createDebugCircle(x, y)
 		{
-			var circle = new Circle(x,y,new Vector2(1,-1), 20);
+			var circle = new Circle(x,y, new Vector2(1,-1), 20);
 			// 障害物とのヒットチェック
 			for (var j = 0; j < obstacleList.length; j++)
 			{
 				var hit = chkCollison(obstacleList[j], circle);
-	
 				if(hit)
 				{
 					console.log("ヒット");
@@ -320,25 +375,26 @@
 		function createObstacle()
 		{
 			const centerX = canvas.width / 2; 	// キャンバスの中央X座標
-			const rectWidthNum = 24;			// 矩形の横の数
+			const rectWidthNum = 12;			// 矩形の横の数
 			const rectHeightNum = 6;			// 矩形の縦の数
 			const rectSpace = 8;				// 矩形の間隔
 			const rectSize = 8;					// 矩形の大きさ
-			const rectSizeHarf = rectSize / 2;
+			const rectWidth = 24;				// 矩形の大きさ
+			const rectHeight = 8;				// 矩形の大きさ
 			
-			var width = rectSize * rectWidthNum + (rectSpace * (rectWidthNum - 1));
+			var width = rectWidth * rectWidthNum + (rectSpace * (rectWidthNum - 1));
 			
 			for(var j = 0; j < rectHeightNum; j++)
 			{
 				var posX = centerX - (width / 2);
-				var posY = (rectSize + rectSpace) * j;
+				var posY = (rectHeight + rectSpace) * j;
 				
 				// パラメトリック方程式に基づいてX, Yを計算
 				for (var i = 0; i < rectWidthNum; i++)
 				{
 					// スケーリングと中心合わせ
-					var rect = new Rect(posX, posY, rectSize, rectSize);
-					posX += rectSize + rectSpace;
+					var rect = new Rect(posX, posY, rectWidth, rectHeight);
+					posX += rectWidth + rectSpace;
 					obstacleList.push(rect);
 				}
 			}
@@ -361,6 +417,136 @@
 				var rect = new Rect(centerX + x * scale, centerY - y * scale, 8, 8);
 				obstacleList.push(rect);
 			}
+		}
+		
+		// スコア
+		function getScore()
+		{
+			const score = document.getElementById("score");
+					
+			// その要素のテキスト（SCORE: 0）を取得
+			let scoreText = score.innerText;
+
+			// スコアの数値部分（0）だけを取得する場合
+			let scoreValue = parseInt(scoreText.split(":")[1].trim());
+					
+			return scoreValue;
+		}
+				
+		//　スコア加算
+		function addScore(val, rate)
+		{
+			//　スコア
+			const score = document.getElementById("score");
+					
+			// その要素のテキスト（SCORE: 0）を取得
+			let scoreText = score.innerText;
+
+			// スコアの数値部分（0）だけを取得する場合
+			let scoreValue = parseInt(scoreText.split(":")[1].trim());
+					
+			// 加算
+			scoreValue += (val * rate);
+					 			 
+			// 座標を画面上に表示
+			score.textContent = `SCORE: ${scoreValue}`;
+		}
+
+		// 初期化
+		function initialize() 
+		{
+			var center = new Vector2(canvas.width / 2 , canvas.height / 2);
+						
+			createPaddle(center.x, canvas.height);
+			
+			createObstacleHeart();
+			
+			createObstacle();
+			
+			createCircleCenter();
+		}
+				
+		// ページ読み込み時にヘッダーの高さを取得して、bodyにpadding-topを動的に設定
+		// offsetHeight を使って要素の高さを取得しているため、ボーダーやパディングなども考慮されるらしい。
+		window.onload = function()
+		{
+			var headerHeight = document.querySelector('.HeaderMenuBackGround').offsetHeight;
+			var gameScreenElement = document.querySelector('.gameScreen');
+			// logininfoクラスのpadding-topを設定
+			if (gameScreenElement) 
+			{
+				gameScreenElement.style.paddingTop = headerHeight + "px";
+			}
+			
+			initialize();
+		}
+
+		// キャンバス内でマウスを動かした時のイベント
+		canvas.addEventListener('mousemove', (event) => 
+		{
+		  	var rect = event.target.getBoundingClientRect();
+		  	var x = event.clientX - rect.left;
+		  	var y = event.clientY - rect.top;
+			
+			// マウス座標
+			const mousePos = document.getElementById("mousePos");
+			// 座標を画面上に表示
+			mousePos.textContent = `X: ${x}, Y: ${y}`;
+		});
+		
+		// キャンバス内でマウスをクリックした時のイベント
+		canvas.addEventListener('click', function(event) 
+		{
+			var rect = event.target.getBoundingClientRect();
+			var x = event.clientX - rect.left;
+			var y = event.clientY - rect.top;			
+			createCircle(x, y);
+		});
+		
+		// キーボード操作（キーが押下されたとき・離されたとき）
+		document.addEventListener("keydown", keyDownHandler, false);
+		document.addEventListener("keyup", keyUpHandler, false);
+		
+		// ボタンをマウスをクリックした時のイベント
+		button.addEventListener('click', function(event) 
+		{			
+			if(functionLoop != null)
+			{
+				console.log("ゲームループ終了");
+				functionLoop.clearFunction();
+				functionLoop = null;
+			}
+			
+			console.log("ゲームループ開始");
+			functionLoop = new GameLoop(gameLoop);
+		});
+		
+		// キーが押下されたとき
+		function keyDownHandler(event) 
+		{
+			var speed = 4;
+			
+		  	if (event.key === "Right" || event.key === "ArrowRight") 
+			{
+				paddle.setSpeed(speed);
+		  	}
+			else if (event.key === "Left" || event.key === "ArrowLeft") 
+			{
+				paddle.setSpeed(-speed);
+		  	}
+		}
+
+		// キーが離されたとき
+		function keyUpHandler(event)
+		{
+		  	if (event.key === "Right" || event.key === "ArrowRight") 
+			{
+				paddle.setSpeed(0);
+		  	} 
+			else if (event.key === "Left" || event.key === "ArrowLeft") 
+			{
+				paddle.setSpeed(0);
+		  	}
 		}
 		
 		// 範囲内かチェック
@@ -418,93 +604,12 @@
 			return pointInCheck(rect, edgePos);
 		}
 				
-		// 初期化
-		function initialize() 
-		{
-			var center = new Vector2(canvas.width / 2 , canvas.height / 2);
-						
-			createPaddle(center.x, canvas.height);
-			
-			createObstacleHeart();
-			
-			createObstacle();
-			
-			createCircle(center.x, center.y);
-		}
-				
-		// ページ読み込み時にヘッダーの高さを取得して、bodyにpadding-topを動的に設定
-		// offsetHeight を使って要素の高さを取得しているため、ボーダーやパディングなども考慮されるらしい。
-		window.onload = function()
-		{
-			var headerHeight = document.querySelector('.HeaderMenuBackGround').offsetHeight;
-			var gameScreenElement = document.querySelector('.gameScreen');
-			// logininfoクラスのpadding-topを設定
-			if (gameScreenElement) 
-			{
-				gameScreenElement.style.paddingTop = headerHeight + "px";
-			}
-			
-			initialize();
-		}
-
-		// キャンバス内でマウスを動かした時のイベント
-		canvas.addEventListener('mousemove', (event) => 
-		{
-		  	var rect = event.target.getBoundingClientRect();
-		  	var x = event.clientX - rect.left;
-		  	var y = event.clientY - rect.top;
-			
-			// 座標を画面上に表示
-			mousePos.textContent = `X: ${x}, Y: ${y}`;
-		});
-		
-		// キャンバス内でマウスをクリックした時のイベント
-		canvas.addEventListener('click', function(event) 
-		{
-			var rect = event.target.getBoundingClientRect();
-			var x = event.clientX - rect.left;
-			var y = event.clientY - rect.top;			
-			createCircle(x, y);
-		});
-		
-		// キーボード操作（キーが押下されたとき・離されたとき）
-		document.addEventListener("keydown", keyDownHandler, false);
-		document.addEventListener("keyup", keyUpHandler, false);
-		
-		// キーが押下されたとき
-		function keyDownHandler(event) 
-		{
-			var speed = 6;
-			
-		  	if (event.key === "Right" || event.key === "ArrowRight") 
-			{
-				paddle.setSpeed(speed);
-		  	}
-			else if (event.key === "Left" || event.key === "ArrowLeft") 
-			{
-				paddle.setSpeed(-speed);
-		  	}
-		}
-
-		// キーが離されたとき
-		function keyUpHandler(event)
-		{
-		  	if (event.key === "Right" || event.key === "ArrowRight") 
-			{
-				paddle.setSpeed(0);
-		  	} 
-			else if (event.key === "Left" || event.key === "ArrowLeft") 
-			{
-				paddle.setSpeed(0);
-		  	}
-		}
-		
 		// 円と障害物の衝突判定
 		function hitCircleToPaddle(circle)
 		{
 			var hit = chkCollison(paddle.rect, circle);
 			if (hit === true)
-			{				
+			{	
 				circle.vec.y = -circle.vec.y;
 				circle.pos.y = paddle.rect.pos.y - circle.radius;
 			}
@@ -562,8 +667,10 @@
 					
 					// 障害物を消す
 					obstacleList.splice( j, 1 );
+					return true;
 				}
 			}
+			return false;
 		}
 	
 		// 更新
@@ -591,7 +698,16 @@
 				hitCircleToPaddle(circleInfoList[i]);
 				
 				// 円と障害物の衝突判定
-				hitCircleToObject(circleInfoList[i]);
+				if(hitCircleToObject(circleInfoList[i]))
+				{
+					blockBreakNum++;
+					// スコアが一定量を超えた
+					if(blockBreakNum % 10 === 0)
+					{
+						createCircleCenter();
+					}
+					addScore(10, circleInfoList.length);
+				}
 				
 				// 円が地面にぶつかると消滅(リストから要素を消す)
 				if (circleInfoList[i].pos.y > canvas.height - circleInfoList[i].radius) 
@@ -599,17 +715,19 @@
 					circleInfoList.splice( i, 1 );
 				}
 				
+				// スコア加算
+				
 				// 全ての円が消滅したら
-				if(circleInfoList.length == 0)
+				if(circleInfoList.length === 0)
 				{
-					gameOver();
+					functionLoop.gameOver();
 				}
 			}
 			
 			// ゲームクリア
-			if(obstacleList.length == 0)
+			if(obstacleList.length === 0)
 			{
-				//gameClear();
+				functionLoop.gameClear();
 			}
 								
 			// パドルの左右移動
@@ -670,30 +788,11 @@
 			drawPaddle();
 		}
 		
-		// ゲームループ
+		// ゲームループ(ゲーム開始ボタンが押されると呼びだし)
 		function gameLoop()
 		{
 			update();
 			draw();
-		}
-		
-		// 10Fごとに更新される
-		const interval = setInterval(gameLoop, 10);
-
-		// ゲームオーバー時の処理で停止するように変更
-		function gameOver() 
-		{
-		 	alert("GAME OVER");
-		  	clearInterval(interval); 	// ゲームの更新を停止
-		  	document.location.reload();
-		}
-		
-		// ゲームクリア時の処理で停止するように変更
-		function gameClear() 
-		{
-		 	alert("GAME CLEAR");
-		  	clearInterval(interval); 	// ゲームの更新を停止
-		  	document.location.reload();
 		}
 
 	</script>
