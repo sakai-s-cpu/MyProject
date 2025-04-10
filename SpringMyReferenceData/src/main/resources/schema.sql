@@ -7,5 +7,5 @@ CREATE TABLE rankingData
 	-- ユーザー名
     username VARCHAR(255) NOT NULL,
 	-- スコア
-    score INT NOT NULL,
-)
+    score INT NOT NULL
+);

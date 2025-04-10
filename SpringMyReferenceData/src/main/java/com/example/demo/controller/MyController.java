@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.example.demo.account.data.AccountData;
+import com.example.demo.repository.RankingDataMapper;
 import com.example.demo.score.data.ScoreData;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MyController
 {	
-	//private final RankingDataMapper mapper;
+	private final RankingDataMapper mapper;
 	
 	// 「バリデーション」を行うときは、「Form-Backing Bean」の設定が必要になる。
 	//　「Form-Backing Bean」の初期化は 「@ModelAttribute」アノテーションを付与したメソッドでおこなう
@@ -60,6 +61,7 @@ public class MyController
 	{
 		// modelに格納する
         model.addAttribute("scoreData", data);
+        model.addAttribute("rankingData", mapper.selectAll());
 		return "Ranking";
 	}
 	
@@ -69,6 +71,7 @@ public class MyController
 	{
 		// modelに格納する
         model.addAttribute("scoreData", data);
+        model.addAttribute("rankingData", mapper.selectAll());
 		return "Result";
 	}
 	

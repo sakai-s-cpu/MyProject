@@ -1,6 +1,12 @@
 package com.example.demo.repository;
 
-/*@Mapper
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.example.demo.entity.RankingData;
+
+@Mapper
 public interface RankingDataMapper 
 {
 	// 全てのランキングデータを所得
@@ -9,4 +15,3 @@ public interface RankingDataMapper
 	// 登録
 	void insert(RankingData data);
 }
-*/

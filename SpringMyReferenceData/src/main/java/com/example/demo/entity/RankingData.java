@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class RankingData 
 {
 	private Integer score;
-	private String name;
+	private String username;
 }
