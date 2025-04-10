@@ -86,13 +86,4 @@ public class MyController
         model.addAttribute("accountData", data);
 		return "LoginPage";
 	}
-	
-/*	@PostMapping("Login")
-	public String Login(Model model, @RequestParam String mailadress, @RequestParam String password )
-	{
-		// modelに格納する
-		model.addAttribute("email", email);
-		model.addAttribute("password", password);
-		return "LoginPage";
-	}*/
 }
