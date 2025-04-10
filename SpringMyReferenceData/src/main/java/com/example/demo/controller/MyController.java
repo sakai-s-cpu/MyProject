@@ -29,8 +29,11 @@ public class MyController
 	}
 	
 	@GetMapping("page1")
-	public String page1()
+	public String page1(Model model)
 	{
+		// スコアデータを生成
+		ScoreData scoreData = new ScoreData();
+        model.addAttribute("scoreData", scoreData);
 		return "Page1";
 	}
 	
@@ -46,8 +49,9 @@ public class MyController
 		return "ContactUs";
 	}
 	
-	@GetMapping("ranking")
-	public String Ranking(Model model, ScoreData data, BindingResult bindingResult)
+	// フォームから送信されるデータとバインドされるように設定
+	@PostMapping("ranking")
+	public String Ranking(Model model, @ModelAttribute("scoreData") ScoreData data)
 	{
 		// modelに格納する
         model.addAttribute("scoreData", data);

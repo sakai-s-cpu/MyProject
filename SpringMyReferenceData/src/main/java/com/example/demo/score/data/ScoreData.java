@@ -6,4 +6,9 @@ import lombok.Data;
 public class ScoreData 
 {
 	private Integer score = 0;
+	
+	public Integer getScore()
+	{
+	    return score;
+	}
 }

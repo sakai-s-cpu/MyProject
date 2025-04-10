@@ -41,18 +41,20 @@
 		<canvas id="myCanvas" width="480" height="320"></canvas>
 				
 		<button type="button" id="button">ゲーム開始</button><br>
-				
-		<form th:action="@{/Ranking}" method="post" th:object="${scoreData}">
-			<!--<score th:field="*{score}" id="score" value="0">SCORE: 0</score>-->
-			<s name="score" id="score">SCORE: 0</s>
-		<form>
+		
+		<!-- フォーム部分 -->
+		<form id="scoreForm" th:action="@{/ranking}" method="post" th:object="${scoreData}">			
+			<!-- score フィールドに対応する hidden フィールド -->
+			<input type="hidden" th:field="*{score}" id="score" value="0"/>
+			SCORE: <span id="scoreDisplay">0</span>
+		</form>
 		
 		<!-- 座標表示用のdiv -->
 		<div class="mousePos" id="mousePos">X: 0, Y: 0</div>
 	</div>
 	
-	<script>
-		
+	<script th:inline="javascript">
+				
 		// 矩形
 		class Rect 
 		{
@@ -283,7 +285,10 @@
 			{
 				alert("GAME CLEAR");
 				clearInterval(this.function); 	// ゲームの更新を停止
-				document.location.reload();			
+				
+				// フォームを送信（ページ遷移する）
+				var form = document.getElementById("scoreForm");
+				form.submit();
 			}
 			
 			// ゲームオーバー時の処理で停止するように変更
@@ -291,9 +296,10 @@
 			{
 				alert("GAME OVER");
 				clearInterval(this.function); 	// ゲームの更新を停止
-				// hrefプロパティを使う
-				window.location.href = 'ranking';
-				//document.location.reload();
+				
+				// フォームを送信（ページ遷移する）
+				var form = document.getElementById("scoreForm");
+				form.submit();
 			}
 			
 			clearFunction()
@@ -424,38 +430,21 @@
 			}
 		}
 		
+		// スコアデータ
+		var scoreData = /*[[${scoreData}]]*/ 0;
+		
 		// スコア
 		function getScore()
-		{			
-			//　スコア
-			const score = document.getElementById("score");
-					
-			// その要素のテキスト（SCORE: 0）を取得
-			let scoreText = score.innerText;
-
-			// スコアの数値部分（0）だけを取得する場合
-			let scoreValue = parseInt(scoreText.split(":")[1].trim());
-					
-			return scoreValue;
+		{
+			return scoreData.score;
 		}
 				
 		//　スコア加算
 		function addScore(val, rate)
 		{
-			//　スコア
-			const score = document.getElementById("score");
-					
-			// その要素のテキスト（SCORE: 0）を取得
-			let scoreText = score.innerText;
-
-			// スコアの数値部分（0）だけを取得する場合
-			let scoreValue = parseInt(scoreText.split(":")[1].trim());
-					
-			// 加算
-			scoreValue += (val * rate);
-					 			 
-			// 座標を画面上に表示
-			score.textContent = `SCORE: ${scoreValue}`;
+			scoreData.score += (val * rate);
+			document.getElementById("score").value = scoreData.score;
+			document.getElementById("scoreDisplay").textContent = scoreData.score;
 		}
 
 		// 初期化
