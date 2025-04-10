@@ -11,9 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.example.demo.account.data.AccountData;
 import com.example.demo.score.data.ScoreData;
 
+import lombok.RequiredArgsConstructor;
+
 @Controller
+@RequiredArgsConstructor
 public class MyController
 {	
+	//private final RankingDataMapper mapper;
+	
 	// 「バリデーション」を行うときは、「Form-Backing Bean」の設定が必要になる。
 	//　「Form-Backing Bean」の初期化は 「@ModelAttribute」アノテーションを付与したメソッドでおこなう
 	@ModelAttribute
@@ -56,6 +61,15 @@ public class MyController
 		// modelに格納する
         model.addAttribute("scoreData", data);
 		return "Ranking";
+	}
+	
+	// フォームから送信されるデータとバインドされるように設定
+	@PostMapping("result")
+	public String Result(Model model, @ModelAttribute("scoreData") ScoreData data)
+	{
+		// modelに格納する
+        model.addAttribute("scoreData", data);
+		return "Result";
 	}
 	
 	@PostMapping("Login")

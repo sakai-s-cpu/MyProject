@@ -1,13 +1,11 @@
 -- テーブルが存在したら削除する
-drop table if exists accountdata;
+drop table if exists rankingData;
 
 -- テーブルの作成
-CREATE TABLE accountdata
+CREATE TABLE rankingData
 (
-	-- id(ユーザーID)：主キー
-	id serial primary key,
-	-- UNIQUE制約により、一意の値でなければなりません。同じメールアドレスを複数登録することはできない
-	email VARCHAR(100) UNIQUE,
-	-- パスワードのハッシュ値を格納
-	password_hash VARCHAR(255)
+	-- ユーザー名
+    username VARCHAR(255) NOT NULL,
+	-- スコア
+    score INT NOT NULL,
 )

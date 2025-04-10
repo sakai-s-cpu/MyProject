@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th ="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Result</title>
+	
+	<link th:href="@{/style/HeaderStyle.css}" rel="stylesheet">
+	
+	<style>
+		.result
+		{
+	  		padding-top: 75px; /* ヘッダーの高さ分の余白を追加 */
+		}
+		
+	</style>
+</head>
+
+<body>
+	<div th:insert="MenuHeader :: header"></div>
+	
+	<div class="result">	
+		<li>スコア：[[${scoreData.score}]]</li>
+	</div>
+	
+	<div>ランキングページ</div>
+</body>
+	
+<script>
+	
+	// ページ読み込み時にヘッダーの高さを取得して、bodyにpadding-topを動的に設定
+	// offsetHeight を使って要素の高さを取得しているため、ボーダーやパディングなども考慮されるらしい。
+	window.onload = function()
+	{
+		var headerHeight = document.querySelector('.HeaderMenuBackGround').offsetHeight;
+		var gameScreenElement = document.querySelector('.result');
+		// logininfoクラスのpadding-topを設定
+		if (gameScreenElement) 
+		{
+			gameScreenElement.style.paddingTop = headerHeight + "px";
+		}
+	}
+	
+</script>
+
+</html>

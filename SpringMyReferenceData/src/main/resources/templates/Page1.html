@@ -43,7 +43,7 @@
 		<button type="button" id="button">ゲーム開始</button><br>
 		
 		<!-- フォーム部分 -->
-		<form id="scoreForm" th:action="@{/ranking}" method="post" th:object="${scoreData}">			
+		<form id="scoreForm" th:action="@{/result}" method="post" th:object="${scoreData}">			
 			<!-- score フィールドに対応する hidden フィールド -->
 			<input type="hidden" th:field="*{score}" id="score" value="0"/>
 			SCORE: <span id="scoreDisplay">0</span>
