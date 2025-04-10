@@ -21,6 +21,21 @@
 	
 	<div class="result">	
 		<li>スコア：[[${scoreData.score}]]</li>
+	
+	<table th:if="${rankingData}" border ="1">
+		<thead>
+			<tr>
+				<th>スコア</th>
+				<th>なまえ</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="data: ${rankingData}">
+				<td th:text="${data.score}">スコア</td>
+				<td th:text="${data.username}">なまえ</td>
+			</tr>
+		</tbody>
+	</table>
 	</div>
 	
 	<div>ランキングページ</div>
