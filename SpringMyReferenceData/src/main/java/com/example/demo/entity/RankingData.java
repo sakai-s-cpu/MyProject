@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor			// (全てのフィールドを引数として持つコンストラクタを自動生成)
 public class RankingData 
 {
+	private Integer rank;
 	private Integer score;
 	private String username;
 }

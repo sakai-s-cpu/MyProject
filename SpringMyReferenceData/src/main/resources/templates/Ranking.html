@@ -26,12 +26,14 @@
 		<table th:if="${allUserRankingData}" border ="1">
 			<thead>
 				<tr>
+					<th>順位</th>
 					<th>スコア</th>
 					<th>なまえ</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr th:each="data: ${allUserRankingData}">
+					<td th:text="${data.rank}">順位</td>
 					<td th:text="${data.score}">スコア</td>
 					<td th:text="${data.username}">なまえ</td>
 				</tr>

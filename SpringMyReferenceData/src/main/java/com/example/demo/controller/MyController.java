@@ -79,7 +79,7 @@ public class MyController
         model.addAttribute("scoreData", data);
         
 		// ユーザーランキングデータを生成
-        RankingData rankingData = new RankingData(data.getScore(), "");
+        RankingData rankingData = new RankingData(0, data.getScore(), "");
         model.addAttribute("userRankingData", rankingData);
         model.addAttribute("allUserRankingData", mapper.selectAll());
 		return "Result";
