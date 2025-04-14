@@ -45,12 +45,6 @@ public class MyController
 		return "Page1";
 	}
 	
-	@GetMapping("page2")
-	public String page2()
-	{
-		return "Page2";
-	}
-	
 	@GetMapping("contactUs")
 	public String contactUsPage()
 	{
