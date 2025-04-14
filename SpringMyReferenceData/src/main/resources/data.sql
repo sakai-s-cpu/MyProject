@@ -1,2 +1,2 @@
 -- rankingDataテーブルへのデータ登録
-insert into rankingData (username, score) values ('さいじゃく', 0);
+insert into rankingData (username, score) values ('user', 0);

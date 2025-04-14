@@ -11,6 +11,9 @@
 		.gameScreen
 		{
 			padding-top: 75px; /* ヘッダーの高さ分の余白を追加 */
+			
+			text-align: center;
+
 		}
 
 	    canvas 
@@ -29,6 +32,29 @@
 		    font-size: 16px;
 		    color: #000;
 		}
+		
+		@keyframes sparkle 
+		{
+		    0% { color: gold; transform: scale(1); }
+		    50% { color: orange; transform: scale(1); }
+		    100% { color: gold; transform: scale(1); }
+		}
+
+		.sparkle-text 
+		{
+		    animation: sparkle 1s infinite;
+		    font-size: 24px;
+		    font-weight: bold;
+		    /* text-align: center; */
+		    margin-bottom: 10px;
+		}
+		
+		table 
+		{
+		    margin: 20px auto; /* 上下に余白を持たせつつ、左右中央寄せ */
+		    text-align: center;
+		}
+		
 	</style>
 	
 </head>
@@ -38,7 +64,7 @@
 	</div>
 	
 	<div class = "gameScreen">
-		<canvas id="myCanvas" width="480" height="320"></canvas>
+		<canvas id="myCanvas" width="480" height="320"></canvas><br>
 				
 		<button type="button" id="button">ゲーム開始</button><br>
 		
@@ -52,7 +78,7 @@
 		<!-- 座標表示用のdiv -->
 		<div class="mousePos" id="mousePos">X: 0, Y: 0</div>
 		
-		<div>☆ランキング☆</div>
+		<div class="sparkle-text">☆ランキング☆</div>
 		<table th:if="${allUserRankingData}" border ="1">
 			<thead>
 				<tr>
@@ -364,16 +390,17 @@
 		function createCircleCenter()
 		{
 			const x = canvas.width / 2; 	// キャンバスの中央X座標
-			const y = canvas.height / 2; 	// キャンバスの中央Y座標
+			const y = canvas.height / 2 + 20; 	// キャンバスの中央Y座標
 			const speed = 3;
 			
-			var rate = Math.floor( Math.random() * 4 );
+			var rate = Math.floor( Math.random() * 2 );
 			var randomDeg = 45 + (rate * 90);
+			console.log(randomDeg);
 			var vec = Vector2.vec2OfDeg(randomDeg);	
 			vec.normalized;
 			vec.times(speed);
 			
-			var circle = new Circle(x,y,vec);
+			var circle = new Circle(x,y,vec.inverse);
 			circleInfoList.push(circle);
 		}
 		
@@ -578,7 +605,7 @@
 			var vec2to3 = Vector2.sub(p3, p2);
 			var vec3to4 = Vector2.sub(p4, p3);
 			var vec4to1 = Vector2.sub(p1, p4);
-					
+
 			// 矩形の4点からポイントに対するベクトル
 			var vec1toPoint = Vector2.sub(point, p1);
 			var vec2toPoint = Vector2.sub(point, p2);
@@ -652,7 +679,7 @@
 					if((targetdeg > deg && targetdeg < 180 - deg) || (targetdeg < 360 - deg && targetdeg > 180 + deg))
 					{
 						circle.vec.y = -circle.vec.y;
-										
+
 						// 位置の補正
 						if(targetVec.y < 0)
 						{

@@ -13,6 +13,22 @@
 	  		padding-top: 75px; /* ヘッダーの高さ分の余白を追加 */
 		}
 		
+		@keyframes sparkle 
+		{
+		    0% { color: gold; transform: scale(1); }
+		    50% { color: orange; transform: scale(1); }
+		    100% { color: gold; transform: scale(1); }
+		}
+
+		.sparkle-text 
+		{
+		    animation: sparkle 1s infinite;
+		    font-size: 24px;
+		    font-weight: bold;
+		    /* text-align: center; */
+		    margin-bottom: 10px;
+		}
+		
 	</style>
 </head>
 
@@ -21,7 +37,7 @@
 	
 	<div class="ranking">	
 
-		<div>☆ランキング☆</div>
+		<div class="sparkle-text">☆ランキング☆</div>
 		
 		<table th:if="${allUserRankingData}" border ="1">
 			<thead>
