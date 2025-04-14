@@ -20,10 +20,25 @@
 	<div th:insert="MenuHeader :: header"></div>
 	
 	<div class="ranking">	
-		<li>スコア：[[${scoreData.score}]]</li>
+
+		<div>☆ランキング☆</div>
+		
+		<table th:if="${allUserRankingData}" border ="1">
+			<thead>
+				<tr>
+					<th>スコア</th>
+					<th>なまえ</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="data: ${allUserRankingData}">
+					<td th:text="${data.score}">スコア</td>
+					<td th:text="${data.username}">なまえ</td>
+				</tr>
+			</tbody>
+		</table>
+		
 	</div>
-	
-	<div>ランキングページ</div>
 </body>
 	
 <script>

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.example.demo.account.data.AccountData;
+import com.example.demo.entity.RankingData;
 import com.example.demo.repository.RankingDataMapper;
 import com.example.demo.score.data.ScoreData;
 
@@ -57,11 +58,16 @@ public class MyController
 	
 	// フォームから送信されるデータとバインドされるように設定
 	@PostMapping("ranking")
-	public String Ranking(Model model, @ModelAttribute("scoreData") ScoreData data)
+	public String Ranking(Model model, @ModelAttribute("userRankingData") RankingData data)
 	{
+		// 登録
+		if(data != null)
+		{
+			mapper.insert(data);
+		}
+		
 		// modelに格納する
-        model.addAttribute("scoreData", data);
-        model.addAttribute("rankingData", mapper.selectAll());
+        model.addAttribute("allUserRankingData", mapper.selectAll());
 		return "Ranking";
 	}
 	
@@ -71,7 +77,11 @@ public class MyController
 	{
 		// modelに格納する
         model.addAttribute("scoreData", data);
-        model.addAttribute("rankingData", mapper.selectAll());
+        
+		// ユーザーランキングデータを生成
+        RankingData rankingData = new RankingData(data.getScore(), "");
+        model.addAttribute("userRankingData", rankingData);
+        model.addAttribute("allUserRankingData", mapper.selectAll());
 		return "Result";
 	}
 	

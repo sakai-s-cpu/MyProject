@@ -19,26 +19,16 @@
 <body>
 	<div th:insert="MenuHeader :: header"></div>
 	
-	<div class="result">	
-		<li>スコア：[[${scoreData.score}]]</li>
 	
-	<table th:if="${rankingData}" border ="1">
-		<thead>
-			<tr>
-				<th>スコア</th>
-				<th>なまえ</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr th:each="data: ${rankingData}">
-				<td th:text="${data.score}">スコア</td>
-				<td th:text="${data.username}">なまえ</td>
-			</tr>
-		</tbody>
-	</table>
-	</div>
-	
-	<div>ランキングページ</div>
+	<div class="result">
+		<h3>☆結果☆</h3>
+		<div>スコア：			[[${scoreData.score}]]</div>
+		<form th:action="@{/ranking}" method="post" th:object="${userRankingData}">
+			<div>ユーザーネーム：<input type="text" name="username"></div>
+			<input type="hidden" name="score" th:value="${scoreData.score}">
+			<button type="submit" id="button">データ登録</button>
+		</form>
+	</div>	
 </body>
 	
 <script>
