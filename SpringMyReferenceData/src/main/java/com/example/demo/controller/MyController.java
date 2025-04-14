@@ -41,6 +41,7 @@ public class MyController
 		// スコアデータを生成
 		ScoreData scoreData = new ScoreData();
         model.addAttribute("scoreData", scoreData);
+        model.addAttribute("allUserRankingData", mapper.selectAll());
 		return "Page1";
 	}
 	

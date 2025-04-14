@@ -19,7 +19,6 @@
 <body>
 	<div th:insert="MenuHeader :: header"></div>
 	
-	
 	<div class="result">
 		<h3>☆結果☆</h3>
 		<div>スコア：			[[${scoreData.score}]]</div>
@@ -28,6 +27,8 @@
 			<input type="hidden" name="score" th:value="${scoreData.score}">
 			<button type="submit" id="button">データ登録</button>
 		</form>
+		
+		<a href="./Page1.html" th:href="@{/page1}">PAGE1</a>
 	</div>	
 </body>
 	
